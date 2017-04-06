@@ -1,4 +1,6 @@
-  var config = {
+  
+// Initialize Firebase
+ var config = {
     apiKey: "AIzaSyDFPUyTdBtcKpjG4OhB4GicmhN0hJhwJeQ",
     authDomain: "train-times-cb0fa.firebaseapp.com",
     databaseURL: "https://train-times-cb0fa.firebaseio.com",
@@ -7,67 +9,77 @@
   };
   firebase.initializeApp(config);
   
-  var database = firebase.database();
 
-$("#submitBtn").on("click", function(){
 
-	var newName = $("#trainNameInput").val().trim();
-	var newDestination = $("#trainDestinationInput").val().trim();
-	var newFrequency = $("#frequencyInput").val().trim();
-	var newStart = $("#firstTrainInput").val().trim();
 
-	database.ref().push({
-		name: newName,
-		destination: newDestination,
-		start: newStart,
-		frequency: newFrequency,
-		dateAdded: firebase.database.ServerValue.TIMESTAMP
-	});
-	
+var trainData = firebase.database();
 
-	$("#trainNameInput").val(" ");
-	$("#trainDestinationInput").val(" ");
-	$("#frequencyInput").val(" ");
-	$("#firstTrainInput").val(" ");
+// on click function to submit info from html
+$("#add-train-btn").on("click", function() {
 
-	return false;
+  // grabs the user input
+  var trainName = $("#train-name-input").val().trim();
+  var destination = $("#destination-input").val().trim();
+  var firstTrainUnix = moment($("#first-train-input").val().trim(), "HH:mm").subtract(10, "years").format("X");
+  var frequency = $("#frequency-input").val().trim();
+
+  // local storage
+  var newTrain = {
+
+    name: trainName,
+    destination: destination,
+    firstTrain: firstTrainUnix,
+    frequency: frequency
+  };
+
+  // pushes data to firebase
+  trainData.ref().push(newTrain);
+
+  
+  console.log(newTrain.name);
+  console.log(newTrain.destination);
+  console.log(firstTrainUnix);
+  console.log(newTrain.frequency);
+
+  // Alert
+  alert("Train added");
+
+  // resets all text boxes
+  $("#train-name-input").val("");
+  $("#destination-input").val("");
+  $("#first-train-input").val("");
+  $("#frequency-input").val("");
+
+  // Determine when the next train arrives.
+  return false;
 });
 
-database.ref().on("child_added", function(childSnapshot) {
-	
+// Create Firebase event for adding trains to the database and a row in the html when a user adds an entry
+trainData.ref().on("child_added", function(childSnapshot, prevChildKey) {
 
-	var name = childSnapshot.val().name;
-	var destination = childSnapshot.val().destination;
-	var start = childSnapshot.val().start;
-	var frequency = childSnapshot.val().frequency;
+  console.log(childSnapshot.val());
 
+  // Store everything into a variable.
+  var tName = childSnapshot.val().name;
+  var tDestination = childSnapshot.val().destination;
+  var tFrequency = childSnapshot.val().frequency;
+  var tFirstTrain = childSnapshot.val().firstTrain;
 
-	var newTr = $("<tr>");
+  
+  var differenceTimes = moment().diff(moment.unix(tFirstTrain), "minutes");
+  var tRemainder = moment().diff(moment.unix(tFirstTrain), "minutes") % tFrequency;
+  var tMinutes = tFrequency - tRemainder;
 
-	var newTrainTd = $("<td>");
-	var newDestinationTd = $("<td>");
-	var newFirstTrainTd = $("<td>");
-	var newFrequencyTd = $("<td>");
-	var newNextTd = $("<td>");
-	var newMinutesAwayTd = $("<td>");
+  
+  var tArrival = moment().add(tMinutes, "m").format("hh:mm A");
 
-	var firstTimeConverted = moment(start,"hh:mm").subtract(1, "years");
-	var currentTime = moment();
-	var timeDiff = moment().diff(firstTimeConverted, "minutes");
-	var timeRemainder = timeDiff % frequency;
-	var minutesNextTrain = frequency - timeRemainder;
-	var nextTrain = moment().add(minutesNextTrain, "minutes").format("hh:mm");
-
-	newTrainTd.text(name);
-	newDestinationTd.text(destination);
-	newFirstTrainTd.text(start);
-	newFrequencyTd.text(frequency);
-	newNextTd.text(nextTrain);
-	newMinutesAwayTd.text(minutesNextTrain);
+  console.log(tMinutes);
+  console.log(tArrival);
+  console.log(moment().format("hh:mm A"));
+  console.log(tArrival);
+  console.log(moment().format("X"));
 
 
-
-	newTr.append(newTrainTd, newDestinationTd, newFirstTrainTd, newFrequencyTd, newNextTd, newMinutesAwayTd);
-	$(".tbody").append(newTr);
-
+  $("#train-table > tbody").append("<tr><td>" + tName + "</td><td>" + tDestination + "</td><td>"
+  + tFrequency + "</td><td>" + tArrival + "</td><td>" + tMinutes + "</td></tr>");
 });
