@@ -1,4 +1,4 @@
-  
+
 // Initialize Firebase
  var config = {
     apiKey: "AIzaSyDFPUyTdBtcKpjG4OhB4GicmhN0hJhwJeQ",
@@ -12,16 +12,16 @@
 
 
 
-var trainData = firebase.database();
+var indexInput = firebase.database();
 
 // on click function to submit info from html
-$("#add-train-btn").on("click", function() {
+$("#trainbtn").on("click", function() {
 
   // grabs the user input
-  var trainName = $("#train-name-input").val().trim();
-  var destination = $("#destination-input").val().trim();
-  var firstTrainUnix = moment($("#first-train-input").val().trim(), "HH:mm").subtract(10, "years").format("X");
-  var frequency = $("#frequency-input").val().trim();
+  var trainName = $("#nameinput").val().trim();
+  var destination = $("#destinationinput").val().trim();
+  var firstTrainUnix = moment($("#firstinput").val().trim(), "HH:mm").subtract(10, "years").format("X");
+  var frequency = $("#frequencyinput").val().trim();
 
   // local storage
   var newTrain = {
@@ -33,7 +33,7 @@ $("#add-train-btn").on("click", function() {
   };
 
   // pushes data to firebase
-  trainData.ref().push(newTrain);
+  indexInput.ref().push(newTrain);
 
   
   console.log(newTrain.name);
@@ -42,20 +42,20 @@ $("#add-train-btn").on("click", function() {
   console.log(newTrain.frequency);
 
   // Alert
-  alert("Train added");
+  alert("A train has been added");
 
   // resets all text boxes
-  $("#train-name-input").val("");
-  $("#destination-input").val("");
-  $("#first-train-input").val("");
-  $("#frequency-input").val("");
+  $("#nameinput").val("");
+  $("#destinationinput").val("");
+  $("#firstinput").val("");
+  $("#frequencyinput").val("");
 
   // Determine when the next train arrives.
   return false;
 });
 
 // Create Firebase event for adding trains to the database and a row in the html when a user adds an entry
-trainData.ref().on("child_added", function(childSnapshot, prevChildKey) {
+indexInput.ref().on("child_added", function(childSnapshot, prevChildKey) {
 
   console.log(childSnapshot.val());
 
@@ -63,11 +63,11 @@ trainData.ref().on("child_added", function(childSnapshot, prevChildKey) {
   var tName = childSnapshot.val().name;
   var tDestination = childSnapshot.val().destination;
   var tFrequency = childSnapshot.val().frequency;
-  var tFirstTrain = childSnapshot.val().firstTrain;
+  var tFirstInput = childSnapshot.val().firstTrain;
 
   
-  var differenceTimes = moment().diff(moment.unix(tFirstTrain), "minutes");
-  var tRemainder = moment().diff(moment.unix(tFirstTrain), "minutes") % tFrequency;
+  var differenceTimes = moment().diff(moment.unix(tFirstInput), "minutes");
+  var tRemainder = moment().diff(moment.unix(tFirstInput), "minutes") % tFrequency;
   var tMinutes = tFrequency - tRemainder;
 
   
